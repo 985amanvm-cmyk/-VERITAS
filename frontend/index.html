@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VERITAS — Fake News Origin Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow glow-1"></div>
+<div class="bg-glow glow-2"></div>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <polygon points="16,2 30,9 30,23 16,30 2,23 2,9" stroke="#00e5ff" stroke-width="1.5" fill="rgba(0,229,255,0.06)"/>
+          <polygon points="16,8 24,12 24,20 16,24 8,20 8,12" stroke="#00e5ff" stroke-width="1" fill="rgba(0,229,255,0.04)"/>
+          <circle cx="16" cy="16" r="3" fill="#00e5ff"/>
+          <line x1="16" y1="2" x2="16" y2="8" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="16" y1="24" x2="16" y2="30" stroke="#00e5ff" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">VERITAS</div>
+        <div class="brand-sub">Disinformation Intelligence Platform</div>
+      </div>
+    </div>
+
+    <nav class="main-nav">
+      <button class="nav-btn active" data-tab="classify" onclick="switchTab('classify')">
+        <span class="nav-dot"></span> Classify
+      </button>
+      <button class="nav-btn" data-tab="network" onclick="switchTab('network')">
+        <span class="nav-dot"></span> Spread Graph
+      </button>
+      <button class="nav-btn" data-tab="sources" onclick="switchTab('sources')">
+        <span class="nav-dot"></span> Source Intel
+      </button>
+    </nav>
+
+    <div id="apiStatus" class="status-pill">
+      <span class="status-dot"></span>
+      <span id="statusText">Connecting</span>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag"><span class="tag-dot"></span> AI-Powered · Real-Time · Explainable</div>
+    <h1 class="hero-title">Track. Classify. <em>Expose.</em></h1>
+    <p class="hero-desc">Advanced NLP meets graph theory to detect fake news, trace its origin, and map how disinformation spreads across networks in real time.</p>
+  </div>
+  <div class="hero-stats">
+    <div class="hs"><span class="hs-num">98.2%</span><span class="hs-label">Accuracy</span></div>
+    <div class="hs-div"></div>
+    <div class="hs"><span class="hs-num">1,247</span><span class="hs-label">Fake sources</span></div>
+    <div class="hs-div"></div>
+    <div class="hs"><span class="hs-num">&lt;0.8s</span><span class="hs-label">Analysis time</span></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ══ CLASSIFY ══ -->
+  <section id="tab-classify" class="panel active">
+    <div class="two-col">
+      <div class="col-left">
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title"><span class="ch-icon">⌖</span>Article Analysis</div>
+            <div class="card-badge">NLP Engine v2.1</div>
+          </div>
+          <div class="textarea-wrap">
+            <textarea id="newsText" placeholder="Paste a news headline or article excerpt for analysis..." onkeyup="updateChar()"></textarea>
+          </div>
+          <div class="example-row">
+            <span class="ex-label">Quick load:</span>
+            <button class="ex-chip c-red" onclick="loadEx(0)">● Fake</button>
+            <button class="ex-chip c-green" onclick="loadEx(1)">● Real</button>
+            <button class="ex-chip c-amber" onclick="loadEx(2)">● Satire</button>
+          </div>
+          <button class="cta-btn" id="analyzeBtn" onclick="classifyText()">
+            <span>Run Analysis</span>
+            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="char-counter mono"><span id="charCount">0</span> / 10,000 chars</div>
+        </div>
+
+        <div class="glass-card hidden" id="signalsCard">
+          <div class="card-header">
+            <div class="card-title"><span class="ch-icon">◈</span>Signal Breakdown</div>
+          </div>
+          <div class="signals-grid" id="signalsGrid"></div>
+          <div class="pattern-tags" id="patternTags"></div>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="glass-card placeholder-card" id="placeholderCard">
+          <div class="placeholder-vis">
+            <div class="ph-ring ph-r1"></div>
+            <div class="ph-ring ph-r2"></div>
+            <div class="ph-ring ph-r3"></div>
+            <div class="ph-dot"></div>
+          </div>
+          <p class="ph-text">Enter text and run analysis<br>to see the intelligence report</p>
+        </div>
+
+        <div class="glass-card result-card hidden" id="resultCard">
+          <div class="card-header">
+            <div class="card-title"><span class="ch-icon">◉</span>Intelligence Report</div>
+            <div id="verdictBadgeLarge" class="verdict-badge-large"></div>
+          </div>
+
+          <div class="verdict-body">
+            <div class="ring-wrap">
+              <svg class="ring-svg" viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+                <circle id="ringArc" cx="55" cy="55" r="46" fill="none" stroke="#00e5ff" stroke-width="10"
+                  stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="289"
+                  transform="rotate(-90 55 55)" style="transition: stroke-dashoffset 1s cubic-bezier(.4,0,.2,1), stroke 0.5s"/>
+              </svg>
+              <div class="ring-inner">
+                <div class="ring-pct" id="ringPct">—</div>
+                <div class="ring-lbl">confidence</div>
+              </div>
+            </div>
+            <div class="verdict-info">
+              <div class="verdict-title" id="verdictTitle">—</div>
+              <div class="verdict-desc" id="verdictDesc"></div>
+              <div class="prob-row">
+                <span class="prob-lbl mono">FAKE PROB.</span>
+                <div class="prob-track"><div class="prob-fill" id="probFill"></div></div>
+                <span class="prob-num mono" id="probNum">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <div class="signals-list" id="signalsList"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ NETWORK ══ -->
+  <section id="tab-network" class="panel">
+    <div class="net-layout">
+
+      <div class="net-sidebar glass-card">
+        <div class="card-header">
+          <div class="card-title"><span class="ch-icon">◎</span>Scenario</div>
+        </div>
+        <div class="scenario-list">
+          <button class="scenario-btn active" onclick="selectScenario('covid',this)">
+            <span class="sc-emoji">🦠</span>
+            <div><div class="sc-title">COVID Misinfo</div><div class="sc-sub">12,400 shares · 6h peak</div></div>
+          </button>
+          <button class="scenario-btn" onclick="selectScenario('election',this)">
+            <span class="sc-emoji">🗳️</span>
+            <div><div class="sc-title">Election Fraud</div><div class="sc-sub">8,900 shares · 2 bot networks</div></div>
+          </button>
+          <button class="scenario-btn" onclick="selectScenario('celeb',this)">
+            <span class="sc-emoji">⭐</span>
+            <div><div class="sc-title">Celebrity Rumour</div><div class="sc-sub">34K shares · 3h spread</div></div>
+          </button>
+        </div>
+
+        <div class="divider"></div>
+        <div class="section-lbl">Node legend</div>
+        <div class="legend-list">
+          <div class="leg-row"><span class="leg-dot" style="background:#ff4757"></span><span>Origin source</span></div>
+          <div class="leg-row"><span class="leg-dot" style="background:#ffa502"></span><span>Amplifier</span></div>
+          <div class="leg-row"><span class="leg-dot" style="background:#1e90ff"></span><span>Mainstream media</span></div>
+          <div class="leg-row"><span class="leg-dot" style="background:#2ed573"></span><span>Debunker / Fact-checker</span></div>
+          <div class="leg-row"><span class="leg-dot" style="background:#747d8c"></span><span>Recipient</span></div>
+          <div class="leg-row"><span class="leg-dot bot-ind"></span><span>Bot node (red dot)</span></div>
+        </div>
+
+        <div class="divider"></div>
+        <button class="cta-btn small" onclick="analyzeGraph()">
+          <span>Compute Metrics</span>
+          <svg width="14" height="14" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <div class="net-main">
+        <div class="glass-card canvas-card">
+          <div class="canvas-header">
+            <div class="card-title"><span class="ch-icon">◈</span>Propagation Network</div>
+            <div id="graphStatBadge" class="card-badge mono"></div>
+          </div>
+          <canvas id="netCanvas"></canvas>
+          <div id="graphTooltip" class="graph-tooltip glass-card"></div>
+        </div>
+
+        <div class="metrics-row" id="metricsRow">
+          <div class="met-card glass-card">
+            <div class="met-icon">⬡</div>
+            <div class="met-val" id="m-depth">—</div>
+            <div class="met-name">Cascade depth</div>
+          </div>
+          <div class="met-card glass-card">
+            <div class="met-icon">K</div>
+            <div class="met-val" id="m-viral">—</div>
+            <div class="met-name">Viral coeff.</div>
+          </div>
+          <div class="met-card glass-card">
+            <div class="met-icon">🤖</div>
+            <div class="met-val" id="m-bot">—</div>
+            <div class="met-name">Bot ratio</div>
+          </div>
+          <div class="met-card glass-card">
+            <div class="met-icon">◎</div>
+            <div class="met-val" id="m-nodes">—</div>
+            <div class="met-name">Nodes / Edges</div>
+          </div>
+          <div class="met-card glass-card">
+            <div class="met-icon">🌐</div>
+            <div class="met-val" id="m-countries">—</div>
+            <div class="met-name">Countries</div>
+          </div>
+          <div class="met-card glass-card">
+            <div class="met-icon">★</div>
+            <div class="met-val" id="m-amp">—</div>
+            <div class="met-name">Top amplifier</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SOURCES ══ -->
+  <section id="tab-sources" class="panel">
+    <div class="stats-strip">
+      <div class="strip-stat glass-card">
+        <div class="ss-num accent-text">1,247</div>
+        <div class="ss-label">Fake domains tracked</div>
+        <div class="ss-trend up">↑ 38 this week</div>
+      </div>
+      <div class="strip-stat glass-card">
+        <div class="ss-num">4.2h</div>
+        <div class="ss-label">Avg. to 1K shares</div>
+        <div class="ss-trend good">↓ 18min faster</div>
+      </div>
+      <div class="strip-stat glass-card">
+        <div class="ss-num warn-text">63%</div>
+        <div class="ss-label">Bot amplification</div>
+        <div class="ss-trend up">↑ 4% this month</div>
+      </div>
+      <div class="strip-stat glass-card">
+        <div class="ss-num">18</div>
+        <div class="ss-label">Countries per story</div>
+        <div class="ss-trend neutral">→ stable</div>
+      </div>
+    </div>
+
+    <div class="sources-layout">
+      <div class="src-left">
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title"><span class="ch-icon">⌖</span>Domain Profiler</div>
+          </div>
+          <div class="domain-row">
+            <input id="domainInput" class="domain-input" type="text" placeholder="e.g. worldnewsdailyreport.com" />
+            <button class="cta-btn inline-btn" onclick="profileDomain()">
+              <span>Profile</span>
+              <svg width="14" height="14" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div id="profileResult" class="profile-result hidden"></div>
+        </div>
+      </div>
+
+      <div class="src-right">
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title"><span class="ch-icon">◉</span>Intelligence Database</div>
+            <div class="filter-pills">
+              <button class="fp active" onclick="filterSrc('all',this)">All</button>
+              <button class="fp" onclick="filterSrc('legitimate',this)">Legit</button>
+              <button class="fp" onclick="filterSrc('fake',this)">Fake</button>
+              <button class="fp" onclick="filterSrc('satire',this)">Satire</button>
+            </div>
+          </div>
+          <div id="sourceList" class="source-list">
+            <div class="loading-line mono">Scanning database<span class="blink">_</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-brand">VERITAS</span>
+    <span class="sep">·</span>
+    <span>Disinformation Intelligence Platform</span>
+    <span class="sep">·</span>
+    <span class="mono footer-tech">NLP + Graph Theory + Network Analysis</span>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
